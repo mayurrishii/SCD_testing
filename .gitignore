@@ -3,3 +3,4 @@ __pycache__/
 key.pem
 cert.pem
 clipboard.json
+.pytest_cache/

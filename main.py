@@ -8,6 +8,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -45,6 +46,19 @@ def _load() -> dict:
             return {"text": "", "updated_at": None}
 
 
+def _replace_with_retries(tmp_path: str, target: Path, attempts: int = 5) -> None:
+    """os.replace with retries: on Windows, antivirus scanners can briefly
+    lock freshly written files, causing transient PermissionErrors."""
+    for attempt in range(attempts):
+        try:
+            os.replace(tmp_path, target)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(0.05)
+
+
 def _save(text: str) -> dict:
     """Atomically persist new clipboard content and return the new state."""
     state = {"text": text, "updated_at": _now()}
@@ -54,7 +68,7 @@ def _save(text: str) -> dict:
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(state, f, ensure_ascii=False)
-            os.replace(tmp_path, DATA_FILE)
+            _replace_with_retries(tmp_path, DATA_FILE)
         except BaseException:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)

@@ -26,6 +26,17 @@ No cert? Skip the SSL vars and open http://localhost:8000 instead (plain HTTP).
 2. On [Render](https://render.com): **New → Blueprint** → pick the repo (it reads `render.yaml`).
 3. Done — you get an `https://….onrender.com` URL with an automatic Let's Encrypt cert, a persistent disk for the clipboard data, and a health check on `/api/health`.
 
+## Run the tests
+
+```powershell
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # one time
+.venv\Scripts\python.exe -m pytest -v
+```
+
+- `tests/` — offline suite (API, validation, unicode, persistence, concurrency, config). No server needed.
+- `live_check.py` — separate script that hits a *running* server; handy after a deploy:
+  `.venv\Scripts\python.exe live_check.py`
+
 ## How it works
 
 | Endpoint | Description |
