@@ -1,6 +1,6 @@
 # Cloud Clipboard
 
-A single shared clipboard: paste content, hit **Upload**, and it shows up for everyone on the page (after refresh). Built with FastAPI, served over HTTPS.
+A single shared clipboard: paste content, hit **Update Cloud**, and it shows up for everyone on the page — open pages auto-sync every 5 seconds. Built with FastAPI, served over HTTPS, with a dual Cyber/Pastel theme.
 
 ## Run locally (HTTPS, self-signed)
 

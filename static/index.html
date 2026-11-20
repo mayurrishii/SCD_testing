@@ -1,140 +1,148 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cloud Clipboard</title>
-<style>
-  :root {
-    --bg: #0f1117; --card: #181b25; --border: #2a2f3f;
-    --text: #e6e9f0; --muted: #8b93a7; --accent: #4f8cff;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; padding: 24px;
-  }
-  .card {
-    width: 100%; max-width: 640px; background: var(--card);
-    border: 1px solid var(--border); border-radius: 14px; padding: 28px;
-  }
-  h1 { margin: 0 0 4px; font-size: 1.4rem; }
-  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 20px; }
-  .current {
-    border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
-    white-space: pre-wrap; word-break: break-word; min-height: 60px;
-    font-size: .95rem; background: rgba(255,255,255,0.02);
-  }
-  .empty { color: var(--muted); font-style: italic; }
-  .meta { display: flex; justify-content: space-between; align-items: center; margin: 10px 2px 18px; color: var(--muted); font-size: .8rem; }
-  button.copy {
-    background: none; border: 1px solid var(--border); color: var(--muted);
-    border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: .8rem;
-  }
-  button.copy:hover { color: var(--text); border-color: var(--muted); }
-  textarea {
-    width: 100%; min-height: 110px; resize: vertical;
-    background: rgba(255,255,255,0.03); color: var(--text);
-    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
-    font: inherit; font-size: .95rem;
-  }
-  textarea:focus { outline: none; border-color: var(--accent); }
-  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
-  button.upload {
-    background: var(--accent); color: #fff; border: 0; border-radius: 10px;
-    padding: 10px 22px; font: inherit; font-weight: 600; cursor: pointer;
-  }
-  button.upload:disabled { opacity: .5; cursor: default; }
-  .status { font-size: .85rem; min-height: 1.2em; }
-  .ok { color: #4ade80; } .err { color: #f87171; }
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Clipboard — Shared Across Devices</title>
+    <meta name="description" content="A single shared clipboard: paste text on one device, pick it up on any other.">
+    <!-- Google Fonts: Bricolage Grotesque, Geist, Space Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Geist:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- Material Symbols Outlined -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <main class="card">
-    <h1>📋 Cloud Clipboard</h1>
-    <p class="sub">Shared with everyone — the latest upload wins.</p>
+    <!-- Top Navigation Bar -->
+    <nav class="app-nav">
+        <div class="nav-brand">Cloud Clipboard</div>
+        <div class="nav-actions">
+            <div class="sync-badge" id="syncStatus">
+                <span class="status-dot"></span>
+                <span id="syncStatusText">Connecting&hellip;</span>
+            </div>
+            <div class="theme-slider-container" title="Switch Theme">
+                <span class="theme-label label-cyber">Cyber</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="theme-slider"></span>
+                </label>
+                <span class="theme-label label-pastel">Pastel</span>
+            </div>
+            <button id="refreshBtn" class="btn-icon" title="Refresh from cloud">
+                <span class="material-symbols-outlined">refresh</span>
+            </button>
+        </div>
+    </nav>
 
-    <div class="current empty" id="current">Clipboard is empty</div>
-    <div class="meta">
-      <span id="updated"></span>
-      <button class="copy" id="copyBtn" hidden>Copy</button>
-    </div>
+    <!-- Hero Section: Live Clipboard -->
+    <header class="hero-section">
+        <div class="hero-top">
+            <div>
+                <h1 class="hero-title">Live Clipboard</h1>
+                <p class="hero-subtitle">One shared workspace for everyone. The latest upload wins &mdash; synced in real-time across all open pages.</p>
+            </div>
+            <div class="hero-actions">
+                <button id="copyClipboardBtn" class="btn btn-hero" title="Copy to device clipboard">
+                    <span class="material-symbols-outlined">content_copy</span> Copy All
+                </button>
+                <button id="clearClipboardBtn" class="btn btn-hero-outline" title="Clear the shared clipboard">
+                    <span class="material-symbols-outlined">delete_sweep</span> Clear
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <textarea id="input" placeholder="Paste or type content here…" maxlength="1000000"></textarea>
-    <div class="actions">
-      <span class="status" id="status"></span>
-      <button class="upload" id="uploadBtn">Upload</button>
-    </div>
-  </main>
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="main-grid">
+            <!-- Left Column: Clipboard Editor -->
+            <div class="clipboard-column">
+                <div class="clipboard-card">
+                    <div class="clipboard-card-header">
+                        <div class="label-meta">
+                            <span class="material-symbols-outlined">bolt</span>
+                            <span class="label-mono">Live Editor</span>
+                        </div>
+                        <span class="timestamp" id="updatedStamp"></span>
+                    </div>
 
-<script>
-const $ = (id) => document.getElementById(id);
-const currentEl = $("current"), updatedEl = $("updated"), statusEl = $("status");
-const inputEl = $("input"), uploadBtn = $("uploadBtn"), copyBtn = $("copyBtn");
-let currentText = "";
+                    <div class="editor-container">
+                        <textarea
+                            id="clipboardText"
+                            placeholder="Paste or type text here &mdash; it&rsquo;s shared with everyone&hellip;"
+                            rows="12"
+                            maxlength="1000000"
+                        ></textarea>
+                    </div>
 
-function render() {
-  if (currentText) {
-    currentEl.textContent = currentText;
-    currentEl.classList.remove("empty");
-    copyBtn.hidden = false;
-  } else {
-    currentEl.textContent = "Clipboard is empty";
-    currentEl.classList.add("empty");
-    copyBtn.hidden = true;
-  }
-}
+                    <div class="meta-bar">
+                        <div class="stats">
+                            <span id="charCount">0 characters</span>
+                            <span class="dot-separator">&bull;</span>
+                            <span id="wordCount">0 words</span>
+                        </div>
+                    </div>
 
-async function load() {
-  try {
-    const res = await fetch("/api/clipboard");
-    const data = await res.json();
-    currentText = data.text || "";
-    updatedEl.textContent = data.updated_at
-      ? "Updated " + new Date(data.updated_at).toLocaleString() : "";
-    render();
-  } catch (e) {
-    statusEl.textContent = "Failed to load clipboard.";
-    statusEl.className = "status err";
-  }
-}
+                    <div class="action-toolbar">
+                        <button id="fetchLatestBtn" class="btn btn-outline btn-xs">
+                            <span class="material-symbols-outlined" style="font-size:16px">cloud_download</span> Fetch Cloud
+                        </button>
+                        <button id="uploadBtn" class="btn btn-primary btn-xs">
+                            <span class="material-symbols-outlined" style="font-size:16px">cloud_upload</span> Update Cloud
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-uploadBtn.addEventListener("click", async () => {
-  uploadBtn.disabled = true;
-  statusEl.textContent = "Uploading…";
-  statusEl.className = "status";
-  try {
-    const res = await fetch("/api/clipboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: inputEl.value }),
-    });
-    if (!res.ok) {
-      const detail = (await res.json().catch(() => ({}))).detail;
-      throw new Error(typeof detail === "string" ? detail : res.statusText);
-    }
-    const data = await res.json();
-    currentText = data.text || "";
-    updatedEl.textContent = "Updated " + new Date(data.updated_at).toLocaleString();
-    render();
-    statusEl.textContent = "Uploaded ✓";
-    statusEl.className = "status ok";
-  } catch (e) {
-    statusEl.textContent = "Upload failed: " + e.message;
-    statusEl.className = "status err";
-  } finally {
-    uploadBtn.disabled = false;
-  }
-});
+            <!-- Right Column: Status Panel -->
+            <section class="status-panel">
+                <div class="status-panel-header">
+                    <h2><span class="material-symbols-outlined">monitoring</span> Status</h2>
+                    <span class="badge" id="stateBadge">EMPTY</span>
+                </div>
 
-copyBtn.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(currentText);
-  copyBtn.textContent = "Copied!";
-  setTimeout(() => (copyBtn.textContent = "Copy"), 1200);
-});
+                <div class="status-rows">
+                    <div class="status-row">
+                        <span class="status-key">Last Updated</span>
+                        <span class="status-value" id="statusUpdated">&mdash;</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-key">Characters</span>
+                        <span class="status-value" id="statusChars">0</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-key">Words</span>
+                        <span class="status-value" id="statusWords">0</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-key">Size</span>
+                        <span class="status-value" id="statusSize">0 B</span>
+                    </div>
+                </div>
 
-load();
-</script>
+                <div class="shared-notice">
+                    <span class="material-symbols-outlined">public</span>
+                    <p>Open by design &mdash; shared with everyone, no auth. Don&rsquo;t paste anything sensitive.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-brand" id="footerBrand">Cloud Clipboard</div>
+        <div class="footer-meta">Shared with everyone &bull; Latest upload wins</div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Application Script -->
+    <script src="/app.js"></script>
 </body>
 </html>
