@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: cloud-clipboard
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: CLIPBOARD_FILE
+        value: /data/clipboard.json
+      - key: WEB_CONCURRENCY
+        value: "1"  # single worker so the JSON file is never written concurrently
